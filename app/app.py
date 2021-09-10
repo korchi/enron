@@ -49,9 +49,11 @@ def predict_api():
 def load_model():
     print('loading model')
 
+
 def main():
+    load_model()
+    app.run(host="0.0.0.0", port=5000)
 
 
 if __name__ == '__main__':
-    load_model()
-    app.run(host="0.0.0.0", port=5000)
+    main()
