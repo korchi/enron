@@ -1,58 +1,63 @@
-import time
+import datetime
+import logging
+import os
+from configparser import ConfigParser
+from textwrap import wrap
 
 from flask import Flask, request, jsonify
 
+from models.embedding import EmbeddingModel
+
 app = Flask(__name__)
-
-MODEL_VERSION = 'model_V0.pkl'
-VECTORIZER_VERSION = 'vectorizer_V0.pkl'
-
-
-# load model assets
-# vectorizer_path = os.path.join(os.getcwd(), 'model_assets', VECTORIZER_VERSION)
-# model_path = os.path.join(os.getcwd(), 'model_assets', MODEL_VERSION)
-# vectorizer = pickle.load(open(vectorizer_path, 'rb'))
-# model = pickle.load(open(model_path, 'rb'))
+model = None
+config = None
 
 
-@app.route('/', methods=['POST'])
-def predict():
-    """ Main webpage with user input through form and prediction displayed
-    :return: main webpage host, displays prediction if user submitted in text field
-    """
-
-    msg = request.json()
-    print(msg['email'])
-    return {'message': 'This is what I got',
-            'input': jsonify(msg)}
+def load_model(cfg: ConfigParser):
+    model_tmp = EmbeddingModel(cfg)
+    return model_tmp
 
 
-@app.route('/predict', methods=['POST'])
-def predict_api():
-    """ endpoint for model queries (non gui)
-    :return: json, model prediction and response time
-    """
-    start_time = time.time()
+@app.route("/", methods=["POST"], defaults={"path": ""})
+def predict(path):
+    divider = "================================================================"
+    j = request.get_json()
 
-    # request_data = request.json
-    # input_text = request_data['data']
-    # input_text = clean_text(input_text)
-    # input_text = vectorizer.transform([input_text])
-    # prediction = model.predict(input_text)
-    # prediction = 'Cyber-Troll' if prediction[0] == 1 else "Non Cyber-Troll"  # post processing
-    #
-    # response = {'prediction': prediction, 'response_time': time.time() - start_time}
-    response = {'prediction': 'dummy'}
-    return jsonify(response)
+    print(divider)
+    print(f"*** Received data at: {path}")
+
+    print("\n** data:")
+    print("\n".join(wrap(request.data.decode())))
+    data = request.data.decode('utf-8')
+    prediction: dict = model.predict(data)
+
+    to_return = {
+        "prediction": prediction,
+        "timestamp": datetime.datetime.now()
+    }
+
+    return jsonify(to_return)
 
 
-def load_model():
-    print('loading model')
+def __config_reader():
+    cfg = ConfigParser()
+    cfg_path = os.path.join(os.getcwd(), "cfg", "config.ini")
+    logging.info(f'reading config file from {cfg_path}')
+    cfg.read(cfg_path)
+    return cfg
 
 
 def main():
-    load_model()
-    app.run(host="0.0.0.0", port=5000)
+    global model
+    logging.basicConfig()
+    logging.root.setLevel(logging.NOTSET)
+    logging.info('Started')
+
+    cfg = __config_reader()
+
+    model = load_model(cfg)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+    logging.info('Finished')
 
 
 if __name__ == '__main__':

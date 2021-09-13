@@ -1,0 +1,31 @@
+steps:
+  - name: 'python:3.8-slim'
+    id: Run unit tests
+    entrypoint: /bin/sh
+    args:
+      - '-c'
+      - |
+        pip install poetry && \
+        poetry config virtualenvs.create false && \
+        poetry install -v --no-interaction --no-ansi && \
+        poetry run pytest .
+
+  # Build image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build the image
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/enron:$SHORT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/enron:latest'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push the image
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/enron:$SHORT_SHA'
+
+images:
+  - 'gcr.io/$PROJECT_ID/enron:latest'
