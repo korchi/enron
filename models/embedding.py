@@ -1,7 +1,7 @@
 import json
 import logging
 from configparser import ConfigParser
-from typing import Dict
+from typing import Dict, List, Optional
 
 import numpy as np
 import spacy
@@ -20,19 +20,7 @@ class EmbeddingModel(Model):
         self._load_model()
         self.etalons_embedded = self._embed(self.etalons)
 
-    def _load_model(self):
-        self.model_name = self.cfg.get('MODEL', 'name')
-
-        logging.info(f'Loading {self.model_name}')
-        print(f'Loading {self.model_name}')
-        self.embedder = SentenceTransformer(self.model_name)
-
-        self.sentence_splitter_name = self.cfg.get('SENTENCER', 'name')
-        self.nlp = spacy.load(self.sentence_splitter_name)
-
-        self.is_model_loaded = True
-
-    def predict(self, text: str) -> Dict:
+    def predict(self, text: str) -> Optional[Dict]:
 
         if not isinstance(text, str):
             return None
@@ -67,7 +55,19 @@ class EmbeddingModel(Model):
             result['suspicious'] = any([e in result for e in self.etalons])
         return result
 
-    def _embed(self, corpus):
+    def _load_model(self):
+        self.model_name = self.cfg.get('MODEL', 'name')
+
+        logging.info(f'Loading {self.model_name}')
+        print(f'Loading {self.model_name}')
+        self.embedder = SentenceTransformer(self.model_name)
+
+        self.sentence_splitter_name = self.cfg.get('SENTENCER', 'name')
+        self.nlp = spacy.load(self.sentence_splitter_name)
+
+        self.is_model_loaded = True
+
+    def _embed(self, corpus: List[str]) -> List:
         corpus_embedding = []
         for text in corpus:
             encoding = self.embedder.encode(text)
@@ -75,5 +75,5 @@ class EmbeddingModel(Model):
 
         return corpus_embedding
 
-    def _split_to_sentences(self, text):
+    def _split_to_sentences(self, text: str) -> List:
         return [str(i) for i in self.nlp(text).sents]

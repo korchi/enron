@@ -20,14 +20,12 @@ def load_model(cfg: ConfigParser):
 
 @app.route("/", methods=["POST"], defaults={"path": ""})
 def predict(path):
-    divider = "================================================================"
-    j = request.get_json()
 
-    print(divider)
+    print("================================================================")
     print(f"*** Received data at: {path}")
 
     print("\n** data:")
-    print("\n".join(wrap(request.data.decode())))
+    print("\n".join(wrap(request.data.decode('utf-8'))))
     data = request.data.decode('utf-8')
     prediction: dict = model.predict(data)
 
@@ -56,7 +54,7 @@ def main():
     cfg = __config_reader()
 
     model = load_model(cfg)
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host=cfg["APP"]["host"], port=cfg.getboolean("APP", "port"), debug=True)
     logging.info('Finished')
 
 
