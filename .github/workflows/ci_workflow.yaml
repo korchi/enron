@@ -18,6 +18,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install poetry
         poetry install
+        poetry run python -m spacy download en_core_web_sm
     - name: Test with pytest
       run: |
         poetry run pytest --verbose tests
