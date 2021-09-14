@@ -54,7 +54,7 @@ def main():
     cfg = __config_reader()
 
     model = load_model(cfg)
-    app.run(host=cfg["APP"]["host"], port=cfg.getboolean("APP", "port"), debug=True)
+    app.run(host=cfg["APP"]["host"], port=cfg.getint("APP", "port"), debug=True)
     logging.info('Finished')
 
 
