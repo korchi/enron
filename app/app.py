@@ -20,20 +20,21 @@ def load_model(cfg: ConfigParser):
 
 @app.route("/", methods=["POST"], defaults={"path": ""})
 def predict(path):
-    print("================================================================")
-    print(f"*** Received data at: {path}")
+    if request.method == "POST":
+        print("================================================================")
+        print(f"*** Received data at: {path}")
 
-    print("\n** data:")
-    print("\n".join(wrap(request.data.decode('utf-8'))))
-    data = request.data.decode('utf-8')
-    prediction: dict = model.predict(data)
+        print("\n** data:")
+        print("\n".join(wrap(request.data.decode('utf-8'))))
+        data = request.data.decode('utf-8')
+        prediction: dict = model.predict(data)
 
-    to_return = {
-        "prediction": prediction,
-        "timestamp": datetime.datetime.now()
-    }
+        to_return = {
+            "prediction": prediction,
+            "timestamp": datetime.datetime.now()
+        }
 
-    return jsonify(to_return)
+        return jsonify(to_return)
 
 
 def __config_reader():
