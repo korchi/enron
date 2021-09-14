@@ -20,7 +20,6 @@ def load_model(cfg: ConfigParser):
 
 @app.route("/", methods=["POST"], defaults={"path": ""})
 def predict(path):
-
     print("================================================================")
     print(f"*** Received data at: {path}")
 
@@ -54,7 +53,11 @@ def main():
     cfg = __config_reader()
 
     model = load_model(cfg)
-    app.run(host=cfg["APP"]["host"], port=cfg.getint("APP", "port"), debug=True)
+    host = cfg["APP"]["host"]
+    port = cfg.getint("APP", "port")
+    debug = cfg.getboolean("APP", "debug")
+    logging.info(f'host={host}:{port}')
+    app.run(host=host, port=port, debug=debug)
     logging.info('Finished')
 
 
